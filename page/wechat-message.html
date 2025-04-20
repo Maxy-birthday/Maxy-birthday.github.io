@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>微信消息</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #ededed;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        }
+
+        .chat-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: #f5f5f5;
+            padding: 20px;
+            padding-top: 10px;
+            min-height: calc(100vh - 45px);
+            box-sizing: border-box;
+        }
+
+        .message {
+            display: flex;
+            margin-bottom: 20px;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.3s ease;
+        }
+
+        .message.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .message.sent {
+            flex-direction: row-reverse;
+        }
+
+        .avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 5px;
+            margin: 0 10px;
+            background-size: cover;
+        }
+
+        .message-content {
+            max-width: 60%;
+            padding: 10px 15px;
+            border-radius: 4px;
+            position: relative;
+            word-wrap: break-word;
+        }
+
+        .received .message-content {
+            background: white;
+        }
+
+        .sent .message-content {
+            background: #95ec69;
+        }
+
+        .message-content::before {
+            content: '';
+            position: absolute;
+            top: 12px;
+            border-style: solid;
+            border-width: 6px;
+        }
+
+        .received .message-content::before {
+            left: -12px;
+            border-color: transparent white transparent transparent;
+        }
+
+        .sent .message-content::before {
+            right: -12px;
+            border-color: transparent transparent transparent #95ec69;
+        }
+
+        .typing-indicator {
+            display: inline-flex;
+            gap: 4px;
+            padding: 8px 12px;
+            background: white;
+            border-radius: 10px;
+            margin: 10px;
+            opacity: 0;
+        }
+
+        .typing-indicator.show {
+            opacity: 1;
+        }
+
+        .typing-indicator span {
+            width: 8px;
+            height: 8px;
+            background: #90939b;
+            border-radius: 50%;
+            animation: bounce 1.3s linear infinite;
+        }
+
+        .typing-indicator span:nth-child(2) { animation-delay: 0.15s; }
+        .typing-indicator span:nth-child(3) { animation-delay: 0.3s; }
+
+        @keyframes bounce {
+            0%, 60%, 100% { transform: translateY(0); }
+            30% { transform: translateY(-4px); }
+        }
+
+        .nav-bar {
+            position: sticky;
+            top: 0;
+            background-color: #ededed;
+            padding: 12px 0;
+            text-align: center;
+            border-bottom: 1px solid #d9d9d9;
+            font-size: 17px;
+            color: #000;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 45px;
+            box-sizing: border-box;
+        }
+
+        .nav-bar::before {
+            content: "";
+            position: absolute;
+            left: 16px;
+            width: 12px;
+            height: 12px;
+            border-left: 2px solid #000;
+            border-bottom: 2px solid #000;
+            transform: rotate(45deg);
+            opacity: 0.5;
+        }
+		
+		.bot-bar{
+			position: absolute;
+			    /* 计算方框左下角的视口坐标 */
+			    left: calc(45% - 150px);  /* 视口中心左移方框宽度的一半 */
+			    top: calc(95% + 25px);   /* 视口中心下移方框高度的一半 */
+			    /* 微调位置：向上移动自身高度，确保贴合方框内部左下角 */
+			    transform: translateY(-100%);
+		}
+		
+		.sel{
+			min-width: 300px;
+			    width: 50%;
+			    height: 30px;
+		}
+		.but-send{
+			background-color: #95ec69;
+			border: none;
+			margin-left: 10px;
+			width: 45px;
+			height: 30px;
+		}
+    </style>
+</head>
+<body>
+    <div class="nav-bar">
+        全世界
+    </div>
+
+    <div class="chat-container" id="chatContainer">
+    </div>
+	
+	<div class="bot-bar">
+		<input class="sel" disabled="true" placeholder="go go go,出发咯" />
+		<button class="but-send" onclick="sendMessage()">发送</button>
+	</div>
+
+    <script>
+        const messages = [
+            { text: "亲爱的朋友，生日快乐！🎂", type: "sent" },
+            { text: "愿你的生日充满欢声笑语，如繁星般闪耀✨", type: "sent" },
+            { text: "愿你所求皆所愿，所行化坦途，所遇皆温柔，所向皆光明 🌟", type: "sent" },
+            { text: "愿你的未来，有诗和远方，有梦和期待 🎈", type: "sent" },
+            { text: "愿你一生明媚，幸福安康，遇见最好的自己 💝", type: "sent" },
+            { text: "愿你的生活甜如蜜糖，幸福满溢 🍯", type: "sent" },
+            { text: "愿你遇见的所有时光都温暖，所有遇见都美好 🌈", type: "sent" },
+            { text: "愿你成为自己喜欢的模样，保持热爱，永远光芒万丈 ⭐", type: "sent" },
+            { text: "愿你的笑容比阳光更灿烂，生活比蜜糖更甜 🌞", type: "sent" },
+            { text: "生日快乐，愿你被这个世界温柔以待 🌸", type: "sent" }
+        ];
+
+        let currentIndex = 0;
+
+        function createMessage(text, type) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${type}`;
+            
+            const avatar = document.createElement('div');
+            avatar.className = 'avatar';
+            avatar.style.backgroundImage = type === 'sent' ? 'url("https://picture.gptkong.com/20241218/0224a7fa112e064377a8b4d46a7e03e69c.jpg")' : 'url("https://picture.gptkong.com/20241218/0224a7fa112e064377a8b4d46a7e03e69c.jpg")';
+            avatar.style.backgroundSize = 'cover';
+            avatar.style.backgroundPosition = 'center';
+
+            const content = document.createElement('div');
+            content.className = 'message-content';
+            content.textContent = text;
+			
+            messageDiv.appendChild(avatar);
+            messageDiv.appendChild(content);
+
+            return messageDiv;
+        }
+
+        async function addMessage(text, type) {
+            const chatContainer = document.getElementById('chatContainer');
+            const messageDiv = createMessage(text, type);
+            chatContainer.appendChild(messageDiv);
+            setTimeout(() => messageDiv.classList.add('show'), 100);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+            await new Promise(resolve => setTimeout(resolve, 1000));
+        }
+
+        async function startDemo() {
+            const chatContainer = document.getElementById('chatContainer');
+            chatContainer.innerHTML = '';
+
+            for (const message of messages) {
+                await addMessage(message.text, message.type);
+            }
+        }
+
+        window.addEventListener('load', () => {
+            startDemo();
+        });
+		
+		function sendMessage(){
+			window.location.href = 'cake.html'
+		}
+    </script>
+</body>
+</html> 
