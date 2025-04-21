@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="zh">
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<title>生日倒计时</title>
+		<style>
+			body {
+				margin: 0;
+				height: 100vh;
+				display: flex;
+				justify-content: center;
+				align-items: center;
+				background-image: url('https://picture.gptkong.com/20250105/01578d945c5005464299eb34c2987ee8e5.jpg');
+				background-size: cover;
+				background-position: center;
+				background-repeat: no-repeat;
+				font-family: "Microsoft YaHei", sans-serif;
+			}
+
+			.login-container {
+				background: rgba(255, 255, 255, 0.1);
+				backdrop-filter: blur(3px);
+				padding: 40px;
+				border-radius: 15px;
+				box-shadow: 0 8px 24px rgba(0, 0, 0, 0.05);
+				text-align: center;
+				width: 300px;
+			}
+
+			h2 {
+				color: #fff;
+				text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+				margin-bottom: 30px;
+			}
+
+			.input-group {
+				margin-bottom: 20px;
+				border: 1px solid #D9D9D9;
+				padding: 10px;
+			}
+
+			button {
+				width: 100%;
+				padding: 12px;
+				background: linear-gradient(45deg, #ff9a9e, #fad0c4);
+				border: none;
+				border-radius: 6px;
+				color: white;
+				font-size: 16px;
+				cursor: pointer;
+				transition: transform 0.3s;
+			}
+
+			button:hover {
+				transform: translateY(-2px);
+			}
+
+			.error-message {
+				color: #fff;
+				text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+				margin-top: 10px;
+				font-size: 14px;
+				display: none;
+			}
+
+			#countdownText {
+				color: white;
+			}
+		</style>
+	</head>
+	<body>
+		<div class="login-container">
+			<h2>Mxy-生日祝福</h2>
+			<div class="input-group">
+				<span id="countdownText"></span>
+			</div>
+			<button onclick="login()">进入</button>
+			<div id="error" class="error-message"></div>
+		</div>
+
+		<script>
+			let statu = 0
+
+			function login() {
+				const error = document.getElementById('error');
+				sessionStorage.setItem('birthdayStatu', statu);
+				if (statu === 0) {
+					error.innerHTML = "不要心急，就小小期待一下吧！"
+					// 修改跳转路径，返回上一级目录
+				} else if (statu === 1) {
+					window.location.href = '../index.html';
+				} else if (statu === -1) {
+					error.innerHTML = "生日已经结束，入口已关闭！"
+				} else {
+					error.innerHTML = "系统异常！！！"
+				}
+				// 显示错误信息
+				error.style.display = 'block';
+				setTimeout(() => {
+					error.style.display = 'none';
+				}, 3000);
+			}
+
+			// 添加回车键登录功能
+			document.addEventListener('keypress', function(e) {
+				if (e.key === 'Enter') {
+					login();
+				}
+			});
+
+			// 页面倒计时  
+			function countdown(targetDate) {
+				// 目标日期，这里设置为2025年1月1日午夜
+				const target = new Date(targetDate).getTime();
+				const error = document.getElementById('error');
+				const countdownText = document.getElementById('countdownText');
+
+				// 更新倒计时的函数
+				const updateCountdown = () => {
+
+					// 有效期 1天
+					const exp = -1000 * 60 * 60 * 24;
+					// const exp = -1000 * 60 * 2;
+
+					// 获取当前时间
+					const now = new Date().getTime();
+
+					// 计算时间差
+					const distance = target - now;
+
+					// 计算天数、小时、分钟和秒
+					const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+					const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+					const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+					const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+					if (distance > 0) {
+						statu = 0;
+						// 显示结果
+						countdownText.innerHTML = "生日倒计时：" + `
+								      <span>${days} 天</span>
+								      <span>${hours} 时</span>
+								      <span>${minutes} 分</span>
+								      <span>${seconds} 秒</span>
+								  `;
+					} else if (distance <= 0 && distance > exp) {
+						countdownText.innerHTML = "快来看看我给你准备的生日礼物吧！😀";
+						statu = 1;
+					}
+
+					// 如果目标日期已过，则清除定时器
+					else {
+						clearInterval(countdownInterval);
+						statu = -1;
+						countdownText.innerHTML = "来晚了，生日已经结束！😭";
+					}
+				};
+
+				// 每秒更新一次倒计时
+				const countdownInterval = setInterval(updateCountdown, 1000);
+
+				// 立即调用一次，防止页面加载时的延迟
+				updateCountdown();
+			}
+			countdown("2025-4-21 00:00:00");
+			// countdown("2025-4-21 11:00:00");
+		</script>
+	</body>
+</html>
