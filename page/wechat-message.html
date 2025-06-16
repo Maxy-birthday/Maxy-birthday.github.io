@@ -3,6 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+	
+	<script src="https://cdn.tailwindcss.com"></script>
+	<link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+	
     <title>微信消息</title>
     <style>
         body {
@@ -20,6 +24,7 @@
             padding-top: 10px;
             min-height: calc(100vh - 45px);
             box-sizing: border-box;
+			padding-bottom: 60px;
         }
 
         .message {
@@ -161,6 +166,17 @@
 			width: 45px;
 			height: 30px;
 		}
+		    @layer utilities {
+		        .content-auto {
+		            content-visibility: auto;
+		        }
+		        .input-box-shadow {
+		            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+		        }
+		        .btn-hover {
+		            @apply hover:bg-primary/90 transition-colors;
+		        }
+		    }
     </style>
 </head>
 <body>
@@ -171,10 +187,76 @@
     <div class="chat-container" id="chatContainer">
     </div>
 	
-	<div class="bot-bar">
-		<input class="sel" disabled="true" placeholder="go go go,出发咯" />
-		<button class="but-send" onclick="sendMessage()">发送</button>
-	</div>
+	<!-- 底部输入区域 -->
+	<footer class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray p-3 flex items-center gap-2 input-box-shadow z-10">
+	    <!-- 表情按钮 -->
+	    <button class="w-10 h-10 rounded-full flex items-center justify-center text-gray-500 hover:bg-gray-100 transition-colors">
+	        <i class="fa fa-smile-o text-xl"></i>
+	    </button>
+	    
+	    <!-- 输入框 -->
+	    <div class="flex-grow relative">
+	        <textarea 
+	            id="message-input"
+	            placeholder="输入消息..." 
+	            class="w-full p-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/50 resize-none transition-all"
+	            rows="1"
+	            style="height: 40px; overflow: hidden;"></textarea>
+	        <div id="mic-icon" class="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none text-gray-400">
+	            <i class="fa fa-microphone"></i>
+	        </div>
+	    </div>
+	    
+	    <!-- 加号/发送按钮 -->
+	    <button id="send-btn" class="w-10 h-10 rounded-full flex items-center justify-center text-gray-500 hover:bg-gray-100 transition-colors">
+	        <i class="fa fa-plus"></i>
+	    </button>
+	</footer>
+	
+	<script>
+	    // 监听输入框内容变化
+	    const messageInput = document.getElementById('message-input');
+	    const sendBtn = document.getElementById('send-btn');
+	    const micIcon = document.getElementById('mic-icon');
+	    
+	    messageInput.addEventListener('input', function() {
+	        if (this.value.trim().length > 0) {
+	            // 有内容时显示发送按钮
+	            sendBtn.innerHTML = '<button class="fa fa-paper-plane text-white"></button>';
+	            sendBtn.classList.remove('text-gray-500', 'hover:bg-gray-100');
+	            sendBtn.classList.add('bg-primary', 'btn-hover',"but-send");
+	            micIcon.style.display = 'none';
+	        } else {
+	            // 无内容时显示加号按钮
+	            sendBtn.innerHTML = '<i class="fa fa-plus"></i>';
+	            sendBtn.classList.add('text-gray-500', 'hover:bg-gray-100');
+	            sendBtn.classList.remove('bg-primary', 'btn-hover');
+	            micIcon.style.display = 'block';
+	        }
+	    });
+	    
+	    // 模拟发送消息
+	    sendBtn.addEventListener('click', function() {
+	        if (messageInput.value.trim().length > 0) {
+	            // 这里只是模拟，实际项目中应该添加到聊天内容区域
+	            console.log('发送消息:', messageInput.value);
+	            
+	            // 清空输入框
+	            messageInput.value = '';
+	            messageInput.dispatchEvent(new Event('input')); // 触发输入事件更新按钮状态
+				window.location.href = 'cake.html'
+	        } else {
+	            // 无内容时，加号按钮的默认行为
+	            console.log('打开更多选项');
+	        }
+	    });
+	    
+	    // 输入框高度自适应
+	    messageInput.addEventListener('input', function() {
+	        this.style.height = 'auto';
+	        this.style.height = (this.scrollHeight > 40 ? Math.min(this.scrollHeight, 120) : 40) + 'px';
+	    });
+	</script>
 
     <script>
         const messages = [
@@ -198,7 +280,7 @@
             
             const avatar = document.createElement('div');
             avatar.className = 'avatar';
-            avatar.style.backgroundImage = type === 'sent' ? 'url("https://picture.gptkong.com/20241218/0224a7fa112e064377a8b4d46a7e03e69c.jpg")' : 'url("https://picture.gptkong.com/20241218/0224a7fa112e064377a8b4d46a7e03e69c.jpg")';
+            avatar.style.backgroundImage = type === 'sent' ? 'url("https://img1.baidu.com/it/u=1607119451,3987511393&fm=253&fmt=auto&app=138&f=JPEG?w=500&h=500")' : 'url("https://img2.baidu.com/it/u=582892688,3687023438&fm=253&app=138&f=JPEG?w=800&h=1422")';
             avatar.style.backgroundSize = 'cover';
             avatar.style.backgroundPosition = 'center';
 
@@ -234,9 +316,6 @@
             startDemo();
         });
 		
-		function sendMessage(){
-			window.location.href = 'cake.html'
-		}
     </script>
 </body>
 </html> 
